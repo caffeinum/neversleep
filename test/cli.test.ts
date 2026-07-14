@@ -20,6 +20,25 @@ test("exits 127 with an install hint when claude is missing", async () => {
   expect(err).toContain("claude.com/claude-code");
 });
 
+// neversleep is a transparent wrapper — scripts/CI around it rely on its exit code
+// being claude's, not the wrapper's. Lock that passthrough.
+test("propagates claude's exit code", async () => {
+  const stubDir = await mkdtemp(join(tmpdir(), "ns-exit-"));
+  const stub = join(stubDir, "claude");
+  await writeFile(stub, "#!/usr/bin/env bash\nexit 17\n");
+  await chmod(stub, 0o755);
+
+  const proc = Bun.spawn([process.execPath, CLI, "claude", "-p", "x"], {
+    env: { ...process.env, PATH: `${stubDir}:${process.env.PATH}` },
+    stdout: "ignore",
+    stderr: "ignore",
+  });
+  const code = await proc.exited;
+  expect(code).toBe(17);
+
+  await rm(stubDir, { recursive: true, force: true });
+});
+
 // ctrl-c leaks the settings file (kills the wrapper before cleanup); the next run
 // must sweep dead-pid leftovers while never touching a still-running session's file.
 test("sweeps stale settings files from dead runs, keeps live ones", async () => {
