@@ -1,0 +1,23 @@
+website/index.html
+  s_99eafb473d2d78::t_5b855bed23459c 96
+CLAUDE.md
+  s_99eafb473d2d78::t_deacbbc352637e 10
+README.md
+  s_99eafb473d2d78::t_504f20bfd6c2ae 13,15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "5065f60f2bf94031fc9362caae1ff5b206b19340",
+  "prompts": {},
+  "sessions": {
+    "s_99eafb473d2d78": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "821e6ca6-27d4-4543-8104-b39f3160099b",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Aleksey Bykhun <theisease@gmail.com>"
+    }
+  }
+}
