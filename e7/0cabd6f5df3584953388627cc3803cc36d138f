@@ -1,0 +1,21 @@
+test/plugin-structure.test.ts
+  s_99eafb473d2d78::t_b0089763dfb401 43-50
+plugin/commands/anxiety.md
+  s_99eafb473d2d78::t_b937107bd67fd1 7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "e70cabd6f5df3584953388627cc3803cc36d138f",
+  "prompts": {},
+  "sessions": {
+    "s_99eafb473d2d78": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "821e6ca6-27d4-4543-8104-b39f3160099b",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Aleksey Bykhun <theisease@gmail.com>"
+    }
+  }
+}
