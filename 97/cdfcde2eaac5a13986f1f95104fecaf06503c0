@@ -1,0 +1,36 @@
+plugin/commands/anxiety.md
+  s_99eafb473d2d78::t_3f8c0bf65dd2cf 1-9
+plugin/hooks/stop.ts
+  s_99eafb473d2d78::t_05c5ac765b2d35 4-6,29-31
+  s_99eafb473d2d78::t_8438d367f28c2b 1-3,7-28,32-53
+plugin/hooks/hooks.json
+  s_99eafb473d2d78::t_ade3acf24d46ca 1-14
+test/plugin.test.ts
+  s_99eafb473d2d78::t_7747ba4a65084b 1-8,12,14,16-18,20-21,23-38,40-41,43-57
+  s_99eafb473d2d78::t_e558a4763ac0d5 9-11,13,15,19,22,39,42
+plugin/README.md
+  s_99eafb473d2d78::t_5aefb616d7d361 1-44
+plugin/commands/toggle.sh
+  s_99eafb473d2d78::t_0069cd76e4b7a0 1,6-8,12,14-20,22-24,26-27
+  s_99eafb473d2d78::t_d1c0ead3f1f7c7 2-5,9-11,13,21,25
+plugin/.claude-plugin/plugin.json
+  s_99eafb473d2d78::t_143fe4e55c6ddf 1-12
+plugin/.claude-plugin/marketplace.json
+  s_99eafb473d2d78::t_36e9cabc307168 1-13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "97cdfcde2eaac5a13986f1f95104fecaf06503c0",
+  "prompts": {},
+  "sessions": {
+    "s_99eafb473d2d78": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "821e6ca6-27d4-4543-8104-b39f3160099b",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Aleksey Bykhun <theisease@gmail.com>"
+    }
+  }
+}
