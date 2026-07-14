@@ -2,6 +2,7 @@ import { test, expect, afterEach } from "bun:test";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { unlink } from "node:fs/promises";
+import { existsSync } from "node:fs";
 
 const HOOK = new URL("../plugin/hooks/stop.ts", import.meta.url).pathname;
 const TOGGLE = new URL("../plugin/commands/toggle.sh", import.meta.url).pathname;
@@ -61,4 +62,26 @@ test("/anxiety OFF (any case) means off, not on", async () => {
   expect((await runHook()).decision).toBe("block");
   await toggle("OFF"); // must not fall through to the default 'on' branch
   expect((await runHook()).decision).toBeUndefined();
+});
+
+test("a hostile session id can't escape tmpdir and still keys consistently", async () => {
+  const hostile = `../../../../tmp/pwned-${process.pid}; \`whoami\``;
+  const sanitized = hostile.replace(/[^A-Za-z0-9_-]/g, ""); // node side
+  const escaped = join(tmpdir(), "..", `pwned-${process.pid}`);
+  await unlink(escaped).catch(() => {});
+
+  // bash toggle sanitizes independently; if it disagrees with node, the hook won't block
+  const t = Bun.spawn(["bash", TOGGLE, "on", hostile], { stdout: "ignore", stderr: "ignore" });
+  await t.exited;
+  const p = Bun.spawn(["bun", HOOK], { stdin: "pipe", stdout: "pipe", stderr: "pipe" });
+  p.stdin.write(JSON.stringify({ session_id: hostile }));
+  await p.stdin.end();
+  const out = JSON.parse((await new Response(p.stdout).text()) || "{}");
+  await p.exited;
+
+  expect(out.decision).toBe("block"); // both sides derived the same SAFE key
+  expect(existsSync(escaped)).toBe(false); // nothing escaped tmpdir
+
+  await unlink(join(tmpdir(), `anxiety-on-${sanitized}`)).catch(() => {});
+  await unlink(join(tmpdir(), `anxiety-${sanitized}.json`)).catch(() => {});
 });
