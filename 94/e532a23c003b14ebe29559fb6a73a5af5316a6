@@ -1,0 +1,21 @@
+test/plugin.test.ts
+  s_99eafb473d2d78::t_9fbdba74f47d5d 58-64
+plugin/commands/toggle.sh
+  s_99eafb473d2d78::t_3f2b2bf12847f9 9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "94e532a23c003b14ebe29559fb6a73a5af5316a6",
+  "prompts": {},
+  "sessions": {
+    "s_99eafb473d2d78": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "821e6ca6-27d4-4543-8104-b39f3160099b",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Aleksey Bykhun <theisease@gmail.com>"
+    }
+  }
+}
