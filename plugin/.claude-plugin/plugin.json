@@ -1,0 +1,12 @@
+{
+  "name": "anxiety",
+  "version": "0.1.0",
+  "description": "give your claude anxiety — /anxiety and it won't stop working until you tell it to",
+  "author": {
+    "name": "Aleksey Bykhun"
+  },
+  "homepage": "https://anxiety.dev",
+  "repository": "https://github.com/caffeinum/neversleep",
+  "license": "MIT",
+  "keywords": ["neversleep", "anxiety", "loop", "claude-code"]
+}

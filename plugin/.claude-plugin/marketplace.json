@@ -1,0 +1,13 @@
+{
+  "name": "anxiety",
+  "owner": {
+    "name": "caffeinum"
+  },
+  "plugins": [
+    {
+      "name": "anxiety",
+      "source": "./",
+      "description": "give your claude anxiety — it won't stop working until you tell it to"
+    }
+  ]
+}
