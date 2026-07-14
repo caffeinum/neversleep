@@ -81,7 +81,14 @@ const proc = Bun.spawn(
   ["claude", "--append-system-prompt", SYSTEM_PROMPT, "--settings", settingsPath, ...args],
   {
     stdio: ["inherit", "inherit", "inherit"],
-    env: { ...process.env, NEVERSLEEP: "1" },
+    env: {
+      ...process.env,
+      NEVERSLEEP: "1",
+      // Claude Code force-ends the turn after ~9 consecutive Stop-hook blocks with no
+      // progress. neversleep is meant to never stop, so raise the cap to effectively
+      // unlimited — ctrl-c stays the real off switch. (Don't clobber a user's value.)
+      CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: process.env.CLAUDE_CODE_STOP_HOOK_BLOCK_CAP ?? "1000000",
+    },
   },
 );
 
