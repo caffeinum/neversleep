@@ -9,7 +9,7 @@ CLI that wraps `claude` so it keeps re-checking/improving its work until stopped
 
 Loop escalates through rungs (run-it → correctness → edge-cases → regression → senior-eng), cycling endlessly. The ladder **leads with actually running the built software** end-to-end (not just generating tests / polishing syntax) — that's a deliberate product stance. The hook **always** blocks — claude never voluntarily stops. The only off-ramp is ctrl-c (never trapped; bypasses hooks). No sentinel, no max-passes ceiling. Per-session pass counter (just for rung cycling/display) lives in `$TMPDIR/neversleep-<session_id>.json`.
 
-Public framing (README) = an anxious intern that can't stop working. Internal framing (prompt.ts + hook rung voice) = a craftsman who enjoys the refining. Keep those separate: craftsmanship never surfaces in the README.
+Public framing (README) = an anxious intern that can't stop working. Internal framing (prompt.ts + hook rung voice) = relentless, hungry, aggressive drive that *wants* to keep working, and pushes the model to fan out subagents + use ultracode (parallel orchestration) rather than grind solo. Keep the internal voice out of the README.
 
 Stop hook contract (Claude Code): exit 0 + `{"decision":"block","reason":"..."}` blocks the stop and injects `reason`; exit 0 + `{}` (or no output) allows it.
 

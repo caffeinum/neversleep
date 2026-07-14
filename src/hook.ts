@@ -12,13 +12,14 @@ import { join } from "node:path";
 // Each pass climbs a different rung, so every nudge asks for a *different* kind of
 // improvement instead of re-litigating the same check forever. Wraps around endlessly.
 // The ladder leads with actually RUNNING the software — exercising real behavior, not
-// just generating tests or polishing syntax.
+// just generating tests or polishing syntax. Voice is aggressive and hungry on purpose:
+// it should make the model *want* to keep working, and reach for subagents + ultracode.
 const RUNGS = [
-  { stage: "run-it", reason: "don't take your word for it — actually run the thing. launch it, drive the real flow end-to-end like a user would, and watch what it really does. no 'should work'." },
-  { stage: "correctness", reason: "now trace the paths you didn't exercise. does every branch truly do what you meant, or just the happy one you clicked through?" },
-  { stage: "edge-cases", reason: "feed it the ugly inputs for real — null, empty, huge, malformed, concurrent — and run them. what actually falls over?" },
-  { stage: "regression", reason: "lock in what you just proved by hand: add a test that drives the tricky path so it can't silently break later." },
-  { stage: "senior-eng", reason: "a sharp senior eng puts the running system through its paces. what breaks in the real world — security, perf, footguns? then back to the top." },
+  { stage: "run-it", reason: "no. you don't get to stop after just writing it. RUN it — launch the real thing, drive the whole flow, and try to make it break. watched behavior only, zero 'should work'. fan out subagents to hammer several flows at once. go." },
+  { stage: "correctness", reason: "you checked the happy path and called it done — weak. trace EVERY branch you skipped and prove each one does what you meant. spin up subagents to audit different modules in parallel and report back. don't do this alone." },
+  { stage: "edge-cases", reason: "now attack it for real: null, empty, huge, malformed, concurrent, hostile input — feed it everything ugly and RUN it. use ultracode to blast edge cases in parallel and surface what actually falls over. find the crack." },
+  { stage: "regression", reason: "lock every win behind a test so it can NEVER regress — and not one lazy test, cover the tricky paths hard. parallelize the test-writing across subagents. then run the whole suite and watch it go green." },
+  { stage: "senior-eng", reason: "tear into it like the harshest senior eng alive — security, perf, races, footguns, the thing that pages you at 3am. launch an ultracode review to hunt it from every angle, fix what it finds, then go again from the top. you're not done. you're never done." },
 ];
 
 const payload: any = await Bun.stdin.json().catch(() => ({}));
