@@ -49,8 +49,8 @@ test("escalates through rungs across passes, then wraps", async () => {
     const out = await runHook({ session_id: s, last_assistant_message: `pass ${i}` });
     stages.push(out.reason.match(/· (\S+) ·/)![1]);
   }
-  expect(stages.slice(0, 5)).toEqual(["correctness", "tests", "edge-cases", "simplify", "senior-eng"]);
-  expect(stages[5]).toBe("correctness"); // wraps back around — endless
+  expect(stages.slice(0, 5)).toEqual(["run-it", "correctness", "edge-cases", "regression", "senior-eng"]);
+  expect(stages[5]).toBe("run-it"); // wraps back around — endless
 });
 
 test("survives an empty / non-JSON stdin", async () => {

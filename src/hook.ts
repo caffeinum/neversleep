@@ -11,12 +11,14 @@ import { join } from "node:path";
 
 // Each pass climbs a different rung, so every nudge asks for a *different* kind of
 // improvement instead of re-litigating the same check forever. Wraps around endlessly.
+// The ladder leads with actually RUNNING the software — exercising real behavior, not
+// just generating tests or polishing syntax.
 const RUNGS = [
-  { stage: "correctness", reason: "fresh eyes — trace the happy path. does it actually do the thing you meant?" },
-  { stage: "tests", reason: "now prove it. run the tests for real, and add one that exercises the tricky path if it's missing." },
-  { stage: "edge-cases", reason: "take a lap through the weird inputs: null, empty, huge, malformed, concurrent. what breaks?" },
-  { stage: "simplify", reason: "is there a simpler shape hiding in here? dead code, clearer names, smaller surface, one job per piece." },
-  { stage: "senior-eng", reason: "a sharp senior eng glances at your diff. what's the first thing they'd flag? security, perf, footguns. then we go again from the top." },
+  { stage: "run-it", reason: "don't take your word for it — actually run the thing. launch it, drive the real flow end-to-end like a user would, and watch what it really does. no 'should work'." },
+  { stage: "correctness", reason: "now trace the paths you didn't exercise. does every branch truly do what you meant, or just the happy one you clicked through?" },
+  { stage: "edge-cases", reason: "feed it the ugly inputs for real — null, empty, huge, malformed, concurrent — and run them. what actually falls over?" },
+  { stage: "regression", reason: "lock in what you just proved by hand: add a test that drives the tricky path so it can't silently break later." },
+  { stage: "senior-eng", reason: "a sharp senior eng puts the running system through its paces. what breaks in the real world — security, perf, footguns? then back to the top." },
 ];
 
 const payload: any = await Bun.stdin.json().catch(() => ({}));
