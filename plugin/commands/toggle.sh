@@ -6,6 +6,7 @@
 set -euo pipefail
 
 arg="${1:-on}"
+arg="$(printf '%s' "$arg" | tr '[:upper:]' '[:lower:]')" # /anxiety OFF must mean off
 sid="${2:-${CLAUDE_SESSION_ID:-default}}"
 sid="$(printf '%s' "$sid" | tr -cd 'A-Za-z0-9_-')"
 [ -n "$sid" ] || sid="default"

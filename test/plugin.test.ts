@@ -55,3 +55,10 @@ test("/anxiety off disengages the loop again", async () => {
   await toggle("off");
   expect((await runHook()).decision).toBeUndefined();
 });
+
+test("/anxiety OFF (any case) means off, not on", async () => {
+  await toggle("on");
+  expect((await runHook()).decision).toBe("block");
+  await toggle("OFF"); // must not fall through to the default 'on' branch
+  expect((await runHook()).decision).toBeUndefined();
+});
