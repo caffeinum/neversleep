@@ -1,0 +1,23 @@
+test/hook.test.ts
+  s_99eafb473d2d78::t_77114679a1330e 45,48,52-56
+  s_99eafb473d2d78::t_d729f2618dfc7d 107-108,117-126
+  s_99eafb473d2d78::t_c5620f1f08de4c 127-128
+src/hook.ts
+  s_99eafb473d2d78::t_c4760070781b25 14-18,20-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "6b709b1c0d20faf8bde4a38db024edb2a8af4b1d",
+  "prompts": {},
+  "sessions": {
+    "s_99eafb473d2d78": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "821e6ca6-27d4-4543-8104-b39f3160099b",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Aleksey Bykhun <theisease@gmail.com>"
+    }
+  }
+}
