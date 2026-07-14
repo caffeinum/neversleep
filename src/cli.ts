@@ -7,8 +7,26 @@
 
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { unlink } from "node:fs/promises";
+import { unlink, readdir } from "node:fs/promises";
 import { SYSTEM_PROMPT } from "./prompt.ts";
+
+const TMP = tmpdir();
+
+// ctrl-c is the only way to stop neversleep, and it kills us before the cleanup
+// on line ~exit runs — so every real session would otherwise leave its settings
+// file behind. Sweep leftovers from dead runs at startup. This never touches
+// SIGINT, so ctrl-c stays untrapped.
+async function sweepStaleSettings() {
+  for (const f of await readdir(TMP).catch(() => [] as string[])) {
+    const m = f.match(/^neversleep-settings-(\d+)\.json$/);
+    if (!m) continue;
+    try {
+      process.kill(Number(m[1]), 0); // alive → leave it
+    } catch (e: any) {
+      if (e?.code === "ESRCH") await unlink(join(TMP, f)).catch(() => {}); // dead → remove
+    }
+  }
+}
 
 const args = process.argv.slice(2);
 if (args[0] === "claude") args.shift(); // allow `neversleep claude ...` or `neversleep ...`
@@ -21,6 +39,8 @@ if (!Bun.which("claude")) {
   process.exit(127);
 }
 
+await sweepStaleSettings();
+
 const hookPath = new URL("./hook.ts", import.meta.url).pathname;
 
 const settings = {
@@ -29,7 +49,7 @@ const settings = {
   },
 };
 
-const settingsPath = join(tmpdir(), `neversleep-settings-${process.pid}.json`);
+const settingsPath = join(TMP, `neversleep-settings-${process.pid}.json`);
 await Bun.write(settingsPath, JSON.stringify(settings, null, 2));
 
 const proc = Bun.spawn(

@@ -1,6 +1,6 @@
 {
   "name": "neversleep",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "an intern that never clocks out — wraps claude code so it keeps checking and improving its own work until you stop it",
   "type": "module",
   "bin": {
