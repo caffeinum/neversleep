@@ -7,7 +7,7 @@ CLI that wraps `claude` so it keeps re-checking/improving its work until stopped
 - `src/hook.ts` — the Stop hook. Reads payload on stdin, prints `{"decision":"block","reason":...}` to keep claude going, or `{}` to let it stop. **Intentionally ignores `stop_hook_active`** — looping is the whole point.
 - `src/prompt.ts` — the appended system prompt (craftsman framing, not anxious grind).
 
-Loop escalates through rungs (correctness → tests → edge-cases → simplify → senior-eng), cycling endlessly. The hook **always** blocks — claude never voluntarily stops. The only off-ramp is ctrl-c (never trapped; bypasses hooks). No sentinel, no max-passes ceiling. Per-session pass counter (just for rung cycling/display) lives in `$TMPDIR/neversleep-<session_id>.json`.
+Loop escalates through rungs (run-it → correctness → edge-cases → regression → senior-eng), cycling endlessly. The ladder **leads with actually running the built software** end-to-end (not just generating tests / polishing syntax) — that's a deliberate product stance. The hook **always** blocks — claude never voluntarily stops. The only off-ramp is ctrl-c (never trapped; bypasses hooks). No sentinel, no max-passes ceiling. Per-session pass counter (just for rung cycling/display) lives in `$TMPDIR/neversleep-<session_id>.json`.
 
 Public framing (README) = an anxious intern that can't stop working. Internal framing (prompt.ts + hook rung voice) = a craftsman who enjoys the refining. Keep those separate: craftsmanship never surfaces in the README.
 
