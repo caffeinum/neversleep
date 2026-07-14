@@ -1,8 +1,25 @@
 {
-  "name": "anxiety",
+  "name": "neversleep",
   "version": "0.1.0",
-  "module": "index.ts",
+  "description": "an intern that never clocks out — wraps claude code so it keeps checking and improving its own work until you stop it",
   "type": "module",
+  "bin": {
+    "neversleep": "./src/cli.ts"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "keywords": [
+    "claude",
+    "claude-code",
+    "cli",
+    "agent",
+    "hooks",
+    "automation",
+    "intern"
+  ],
+  "license": "MIT",
   "devDependencies": {
     "@types/bun": "latest"
   },

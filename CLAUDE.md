@@ -1,4 +1,18 @@
 
+# neversleep
+
+CLI that wraps `claude` so it keeps re-checking/improving its work until stopped. Published to npm as `neversleep` (domain: anxiety.dev).
+
+- `src/cli.ts` — bin. Spawns `claude` with `--append-system-prompt` (the intern-mode prompt) + `--settings` (a temp file wiring the Stop hook), passing user argv through. `neversleep claude ...` or `neversleep ...` both work.
+- `src/hook.ts` — the Stop hook. Reads payload on stdin, prints `{"decision":"block","reason":...}` to keep claude going, or `{}` to let it stop. **Intentionally ignores `stop_hook_active`** — looping is the whole point.
+- `src/prompt.ts` — the appended system prompt (craftsman framing, not anxious grind).
+
+Loop escalates through rungs (correctness → tests → edge-cases → simplify → senior-eng), cycling. Off-ramps: `NEVERSLEEP_DONE` sentinel in claude's message, `NEVERSLEEP_MAX_PASSES` env (default 0=unlimited), or ctrl-c (never trapped). Per-session pass counter lives in `$TMPDIR/neversleep-<session_id>.json`.
+
+Stop hook contract (Claude Code): exit 0 + `{"decision":"block","reason":"..."}` blocks the stop and injects `reason`; exit 0 + `{}` (or no output) allows it.
+
+---
+
 Default to using Bun instead of Node.js.
 
 - Use `bun <file>` instead of `node <file>` or `ts-node <file>`
