@@ -86,6 +86,30 @@ test("neutralizes a path-traversal session_id — never writes outside tmpdir", 
   expect(await Bun.file(join(tmpdir(), `neversleep-tmp${marker}.json`)).exists()).toBe(true);
 });
 
+test("stays valid under concurrent invocations on one session — no crash, no corruption", async () => {
+  const s = freshSession();
+  // 12 hooks racing on the same state file. runHook throws if any output is
+  // non-JSON/empty, so a crash or half-written read fails the test.
+  const outs = await Promise.all(
+    Array.from({ length: 12 }, () => runHook({ session_id: s, last_assistant_message: "x" })),
+  );
+  for (const o of outs) expect(o.decision).toBe("block"); // every one blocked, none crashed
+  const state = await Bun.file(join(tmpdir(), `neversleep-${s}.json`)).json();
+  expect(typeof state.passes).toBe("number"); // state file survived as valid JSON
+});
+
+test("the ladder leads with running and pushes subagents + ultracode", async () => {
+  const s = freshSession();
+  const reasons: string[] = [];
+  for (let i = 0; i < 5; i++) {
+    reasons.push((await runHook({ session_id: s, last_assistant_message: "x" })).reason);
+  }
+  const all = reasons.join(" ").toLowerCase();
+  expect(all).toContain("subagent"); // product requirement: encourage subagents
+  expect(all).toContain("ultracode"); // product requirement: encourage ultracode
+  expect(reasons[0]!.toLowerCase()).toContain("run"); // run-it rung leads
+});
+
 test("survives an empty / non-JSON stdin", async () => {
   const proc = Bun.spawn(["bun", HOOK], { stdin: "pipe", stdout: "pipe", stderr: "pipe" });
   await proc.stdin.end(); // no input at all
