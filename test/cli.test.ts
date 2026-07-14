@@ -39,6 +39,36 @@ test("propagates claude's exit code", async () => {
   await rm(stubDir, { recursive: true, force: true });
 });
 
+// The Stop-hook command runs in Claude Code's own shell, whose PATH may lack bun.
+// So the command must invoke bun by absolute path, not bare `bun`, or the loop
+// silently breaks. Capture the generated settings file and assert this.
+test("hook command uses an absolute interpreter path, not bare `bun`", async () => {
+  const stubDir = await mkdtemp(join(tmpdir(), "ns-set-"));
+  const out = join(stubDir, "captured-settings.json");
+  const stub = join(stubDir, "claude");
+  // copy the --settings file out before neversleep deletes it on exit
+  await writeFile(
+    stub,
+    `#!/usr/bin/env bash\nprev=""\nfor a in "$@"; do\n  [ "$prev" = "--settings" ] && cp "$a" "${out}"\n  prev="$a"\ndone\nexit 0\n`,
+  );
+  await chmod(stub, 0o755);
+
+  const proc = Bun.spawn([process.execPath, CLI, "claude", "-p", "x"], {
+    env: { ...process.env, PATH: `${stubDir}:${process.env.PATH}` },
+    stdout: "ignore",
+    stderr: "ignore",
+  });
+  await proc.exited;
+
+  const settings = await Bun.file(out).json();
+  const command: string = settings.hooks.Stop[0].hooks[0].command;
+  expect(command.startsWith('"/')).toBe(true); // absolute, quoted
+  expect(command).not.toMatch(/^bun\b/); // never bare bun
+  expect(command).toContain("hook.ts");
+
+  await rm(stubDir, { recursive: true, force: true });
+});
+
 // ctrl-c leaks the settings file (kills the wrapper before cleanup); the next run
 // must sweep dead-pid leftovers while never touching a still-running session's file.
 test("sweeps stale settings files from dead runs, keeps live ones", async () => {

@@ -43,9 +43,19 @@ await sweepStaleSettings();
 
 const hookPath = new URL("./hook.ts", import.meta.url).pathname;
 
+// Pin the interpreter to the absolute bun binary running us, not a bare `bun`.
+// Claude Code runs this Stop-hook command through its own shell, whose PATH may
+// not include bun — a bare `bun` there silently breaks the loop. Both paths are
+// JSON-quoted so spaces survive the shell.
 const settings = {
   hooks: {
-    Stop: [{ hooks: [{ type: "command", command: `bun ${JSON.stringify(hookPath)}` }] }],
+    Stop: [
+      {
+        hooks: [
+          { type: "command", command: `${JSON.stringify(process.execPath)} ${JSON.stringify(hookPath)}` },
+        ],
+      },
+    ],
   },
 };
 
