@@ -42,15 +42,18 @@ test("blocks even when the message contains the old NEVERSLEEP_DONE sentinel", a
   expect(out.decision).toBe("block");
 });
 
-test("escalates through rungs across passes, then wraps", async () => {
+test("escalates through the interleaved rung ladder, then wraps", async () => {
   const s = freshSession();
   const stages: string[] = [];
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 11; i++) {
     const out = await runHook({ session_id: s, last_assistant_message: `pass ${i}` });
     stages.push(out.reason.match(/· (\S+) ·/)![1]);
   }
-  expect(stages.slice(0, 5)).toEqual(["run-it", "correctness", "edge-cases", "regression", "senior-eng"]);
-  expect(stages[5]).toBe("run-it"); // wraps back around — endless
+  expect(stages.slice(0, 10)).toEqual([
+    "run-it", "user", "edge-cases", "friction", "scope",
+    "correctness", "value-prop", "delight", "moonshot", "senior-eng",
+  ]);
+  expect(stages[10]).toBe("run-it"); // wraps back around — endless
 });
 
 test("keeps a separate pass counter per session", async () => {
@@ -101,13 +104,26 @@ test("stays valid under concurrent invocations on one session — no crash, no c
 test("the ladder leads with running and pushes subagents + ultracode", async () => {
   const s = freshSession();
   const reasons: string[] = [];
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 10; i++) {
+    // walk the whole ladder so we cover every rung
     reasons.push((await runHook({ session_id: s, last_assistant_message: "x" })).reason);
   }
   const all = reasons.join(" ").toLowerCase();
   expect(all).toContain("subagent"); // product requirement: encourage subagents
   expect(all).toContain("ultracode"); // product requirement: encourage ultracode
   expect(reasons[0]!.toLowerCase()).toContain("run"); // run-it rung leads
+});
+
+test("the ladder is diverse — not just engineering rungs", async () => {
+  const s = freshSession();
+  const stages = new Set<string>();
+  for (let i = 0; i < 10; i++) {
+    stages.add((await runHook({ session_id: s, last_assistant_message: "x" })).reason.match(/· (\S+) ·/)![1]);
+  }
+  // product / ux / scope / brainstorm rungs must survive, not just eng
+  for (const s of ["user", "friction", "scope", "value-prop", "delight", "moonshot"]) {
+    expect(stages.has(s)).toBe(true);
+  }
 });
 
 test("survives an empty / non-JSON stdin", async () => {
