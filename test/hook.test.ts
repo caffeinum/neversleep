@@ -53,6 +53,24 @@ test("escalates through rungs across passes, then wraps", async () => {
   expect(stages[5]).toBe("run-it"); // wraps back around — endless
 });
 
+test("keeps a separate pass counter per session", async () => {
+  const a = freshSession();
+  const b = freshSession();
+  await runHook({ session_id: a, last_assistant_message: "x" }); // a -> pass 1
+  await runHook({ session_id: a, last_assistant_message: "x" }); // a -> pass 2
+  const bOut = await runHook({ session_id: b, last_assistant_message: "x" }); // b -> pass 1
+  expect(bOut.reason).toContain("pass 1");
+  expect(bOut.reason).toContain("run-it"); // b starts fresh at the first rung
+});
+
+test("recovers from a corrupted state file — restarts the ladder, still blocks", async () => {
+  const s = freshSession();
+  await Bun.write(join(tmpdir(), `neversleep-${s}.json`), "{ this is not json ]["); // garbage
+  const out = await runHook({ session_id: s, last_assistant_message: "x" });
+  expect(out.decision).toBe("block");
+  expect(out.reason).toContain("pass 1"); // fell back to 0, never crashed
+});
+
 test("survives an empty / non-JSON stdin", async () => {
   const proc = Bun.spawn(["bun", HOOK], { stdin: "pipe", stdout: "pipe", stderr: "pipe" });
   await proc.stdin.end(); // no input at all
