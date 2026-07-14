@@ -61,6 +61,10 @@
   kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;
     padding:1px 7px;color:var(--ink);font-size:12px;background:#141417}
 
+  .plugin{margin-top:40px;padding-top:30px;border-top:1px solid var(--line)}
+  .plugin-tag{color:var(--acc2);font-size:13px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px}
+  .plugin .cmd{background:#0f0f12}
+
   footer{margin-top:48px;padding-top:22px;border-top:1px solid var(--line);
     color:var(--dim);font-size:13px;display:flex;gap:20px;flex-wrap:wrap}
   footer a{text-decoration:none;border-bottom:1px solid transparent;transition:border-color .2s}
@@ -97,6 +101,17 @@
       The only off switch is yours: <kbd>ctrl</kbd> <kbd>c</kbd>.
     </p>
 
+    <div class="plugin">
+      <div class="plugin-tag">or arm it from inside Claude Code — no wrapper</div>
+      <div class="cmd" title="click to copy" onclick="navigator.clipboard&&navigator.clipboard.writeText('/plugin marketplace add caffeinum/neversleep')">
+        <span class="p">/</span><span class="c">plugin marketplace add caffeinum/neversleep</span>
+        <span class="copy">copy</span>
+      </div>
+      <p class="note">
+        Then just type <b>/anxiety</b> and the loop turns on for your session — Claude won't stop until you say <b>/anxiety off</b> (or ctrl-c). Same relentless ladder, opt-in per session.
+      </p>
+    </div>
+
     <footer>
       <a href="https://github.com/caffeinum/neversleep">github ↗</a>
       <a href="https://www.npmjs.com/package/neversleep">npm ↗</a>
@@ -112,9 +127,12 @@
     el.style.opacity=0;
     setTimeout(function(){el.textContent=rungs[i];el.style.opacity=1;},250);
   },1600);
-  var cmd=document.querySelector(".cmd"),copy=document.getElementById("copy");
-  cmd&&cmd.addEventListener("click",function(){
-    copy.textContent="copied";setTimeout(function(){copy.textContent="copy";},1400);
+  document.querySelectorAll(".cmd").forEach(function(cmd){
+    cmd.addEventListener("click",function(){
+      var c=cmd.querySelector(".copy");
+      if(!c)return; c.textContent="copied";
+      setTimeout(function(){c.textContent="copy";},1400);
+    });
   });
 </script>
 </body>
