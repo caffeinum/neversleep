@@ -1,7 +1,8 @@
 import { test, expect } from "bun:test";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { unlink, writeFile, mkdtemp, chmod, rm } from "node:fs/promises";
+import { unlink, writeFile, mkdtemp, chmod, rm, mkdir, cp, utimes } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 
 const CLI = new URL("../src/cli.ts", import.meta.url).pathname;
 
@@ -66,6 +67,69 @@ test("hook command uses an absolute interpreter path, not bare `bun`", async () 
   expect(command).not.toMatch(/^bun\b/); // never bare bun
   expect(command).toContain("hook.ts");
 
+  await rm(stubDir, { recursive: true, force: true });
+});
+
+// HIGH-sev regression: an install path with a space must NOT get percent-encoded
+// into the hook command (URL.pathname bug). fileURLToPath must decode it. We run a
+// copy of the cli from a real "with space" dir and inspect the generated command.
+test("resolves the hook path under a spaced install dir (decoded, not %20)", async () => {
+  const base = await mkdtemp(join(tmpdir(), "ns-space-"));
+  const spaced = join(base, "with space", "src");
+  await mkdir(spaced, { recursive: true });
+  const srcDir = fileURLToPath(new URL("../src", import.meta.url));
+  for (const f of ["cli.ts", "hook.ts", "prompt.ts"]) await cp(join(srcDir, f), join(spaced, f));
+
+  const out = join(base, "captured.json");
+  const stubDir = await mkdtemp(join(tmpdir(), "ns-space-stub-"));
+  const stub = join(stubDir, "claude");
+  await writeFile(
+    stub,
+    `#!/usr/bin/env bash\nprev=""\nfor a in "$@"; do\n  [ "$prev" = "--settings" ] && cp "$a" "${out}"\n  prev="$a"\ndone\nexit 0\n`,
+  );
+  await chmod(stub, 0o755);
+
+  const proc = Bun.spawn([process.execPath, join(spaced, "cli.ts"), "claude", "-p", "x"], {
+    env: { ...process.env, PATH: `${stubDir}:${process.env.PATH}` },
+    stdout: "ignore",
+    stderr: "ignore",
+  });
+  await proc.exited;
+
+  const command: string = (await Bun.file(out).json()).hooks.Stop[0].hooks[0].command;
+  expect(command).toContain("with space"); // literal space, decoded
+  expect(command).not.toContain("with%20space"); // never percent-encoded
+  expect(command).toContain("hook.ts");
+
+  await rm(base, { recursive: true, force: true });
+  await rm(stubDir, { recursive: true, force: true });
+});
+
+// state files (neversleep-<sessionId>.json) have no pid handle — the sweep must
+// age them out so tmpdir doesn't accumulate litter, without touching fresh ones.
+test("sweeps stale state files by age, keeps fresh ones", async () => {
+  const oldFile = join(tmpdir(), `neversleep-oldsess-${process.pid}.json`);
+  const freshFile = join(tmpdir(), `neversleep-freshsess-${process.pid}.json`);
+  await writeFile(oldFile, JSON.stringify({ passes: 3 }));
+  await writeFile(freshFile, JSON.stringify({ passes: 1 }));
+  const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+  await utimes(oldFile, twoDaysAgo, twoDaysAgo);
+
+  const stubDir = await mkdtemp(join(tmpdir(), "ns-sweep-"));
+  const stub = join(stubDir, "claude");
+  await writeFile(stub, "#!/usr/bin/env bash\nexit 0\n");
+  await chmod(stub, 0o755);
+  const proc = Bun.spawn([process.execPath, CLI, "claude", "-p", "x"], {
+    env: { ...process.env, PATH: `${stubDir}:${process.env.PATH}` },
+    stdout: "ignore",
+    stderr: "ignore",
+  });
+  await proc.exited;
+
+  expect(await Bun.file(oldFile).exists()).toBe(false); // stale → reaped
+  expect(await Bun.file(freshFile).exists()).toBe(true); // fresh → kept
+
+  await unlink(freshFile).catch(() => {});
   await rm(stubDir, { recursive: true, force: true });
 });
 

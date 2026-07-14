@@ -1,7 +1,7 @@
 import { test, expect, afterEach } from "bun:test";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { unlink } from "node:fs/promises";
+import { unlink, mkdir, rm } from "node:fs/promises";
 
 const HOOK = new URL("../src/hook.ts", import.meta.url).pathname;
 
@@ -124,6 +124,16 @@ test("the ladder is diverse — not just engineering rungs", async () => {
   for (const s of ["user", "friction", "scope", "value-prop", "delight", "moonshot"]) {
     expect(stages.has(s)).toBe(true);
   }
+});
+
+test("still blocks when the state file can't be persisted", async () => {
+  const s = freshSession();
+  // make the state path a DIRECTORY so Bun.write throws — the block must still emit
+  const statePath = join(tmpdir(), `neversleep-${s}.json`);
+  await mkdir(statePath);
+  const out = await runHook({ session_id: s, last_assistant_message: "x" });
+  expect(out.decision).toBe("block"); // loop survives a persistence failure
+  await rm(statePath, { recursive: true, force: true });
 });
 
 test("survives an empty / non-JSON stdin", async () => {

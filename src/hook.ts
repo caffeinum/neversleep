@@ -39,9 +39,13 @@ try { passes = Number((await Bun.file(stateFile).json())?.passes) || 0; } catch 
 
 const rung = RUNGS[passes % RUNGS.length]!;
 const passNo = passes + 1;
-await Bun.write(stateFile, JSON.stringify({ passes: passNo }));
 
+// Emit the block FIRST — the loop must never depend on persistence succeeding.
 process.stdout.write(JSON.stringify({
   decision: "block",
   reason: `[neversleep · ${rung.stage} · pass ${passNo}] ${rung.reason}`,
 }));
+
+// Best-effort counter bump for rung cycling. A write failure (read-only / full
+// tmpdir, transient FS error) must not break the loop — the block is already out.
+await Bun.write(stateFile, JSON.stringify({ passes: passNo })).catch(() => {});

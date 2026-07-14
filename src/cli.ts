@@ -7,23 +7,34 @@
 
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { unlink, readdir } from "node:fs/promises";
+import { unlink, readdir, stat } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import { SYSTEM_PROMPT } from "./prompt.ts";
 
 const TMP = tmpdir();
+const STATE_MAX_AGE_MS = 24 * 60 * 60 * 1000; // reap state files idle > 1 day
 
-// ctrl-c is the only way to stop neversleep, and it kills us before the cleanup
-// on line ~exit runs — so every real session would otherwise leave its settings
-// file behind. Sweep leftovers from dead runs at startup. This never touches
-// SIGINT, so ctrl-c stays untrapped.
-async function sweepStaleSettings() {
+// Sweep tmpdir litter from dead runs at startup. ctrl-c (the only way to stop
+// neversleep) kills the wrapper before its own cleanup runs, and every session
+// also leaves a small state file behind. Never touches SIGINT, so ctrl-c stays
+// untrapped.
+async function sweepStale() {
+  const now = Date.now();
   for (const f of await readdir(TMP).catch(() => [] as string[])) {
-    const m = f.match(/^neversleep-settings-(\d+)\.json$/);
-    if (!m) continue;
-    try {
-      process.kill(Number(m[1]), 0); // alive → leave it
-    } catch (e: any) {
-      if (e?.code === "ESRCH") await unlink(join(TMP, f)).catch(() => {}); // dead → remove
+    const settings = f.match(/^neversleep-settings-(\d+)\.json$/);
+    if (settings) {
+      try {
+        process.kill(Number(settings[1]), 0); // alive → leave it
+      } catch (e: any) {
+        if (e?.code === "ESRCH") await unlink(join(TMP, f)).catch(() => {}); // dead → remove
+      }
+      continue;
+    }
+    // per-session state files (neversleep-<sessionId>.json) have no pid handle —
+    // an active session keeps its mtime fresh, so age-out the stale ones.
+    if (/^neversleep-[^/]+\.json$/.test(f)) {
+      const st = await stat(join(TMP, f)).catch(() => null);
+      if (st && now - st.mtimeMs > STATE_MAX_AGE_MS) await unlink(join(TMP, f)).catch(() => {});
     }
   }
 }
@@ -39,14 +50,18 @@ if (!Bun.which("claude")) {
   process.exit(127);
 }
 
-await sweepStaleSettings();
+await sweepStale();
 
-const hookPath = new URL("./hook.ts", import.meta.url).pathname;
+// fileURLToPath, NOT .pathname — .pathname keeps percent-encoding (%20 for a
+// space, etc.), so an install path with a space or non-ASCII char would bake a
+// broken path into the hook command and silently kill the loop. fileURLToPath
+// decodes it and fixes the Windows leading-slash too.
+const hookPath = fileURLToPath(new URL("./hook.ts", import.meta.url));
 
 // Pin the interpreter to the absolute bun binary running us, not a bare `bun`.
 // Claude Code runs this Stop-hook command through its own shell, whose PATH may
 // not include bun — a bare `bun` there silently breaks the loop. Both paths are
-// JSON-quoted so spaces survive the shell.
+// JSON-quoted so spaces in the (now-decoded) path survive the shell.
 const settings = {
   hooks: {
     Stop: [
