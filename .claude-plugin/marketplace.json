@@ -6,7 +6,7 @@
   "plugins": [
     {
       "name": "anxiety",
-      "source": "./",
+      "source": "./plugin",
       "description": "give your claude anxiety — it won't stop working until you tell it to"
     }
   ]
