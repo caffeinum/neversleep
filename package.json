@@ -6,6 +6,9 @@
   "bin": {
     "neversleep": "./src/cli.ts"
   },
+  "scripts": {
+    "test": "bun test"
+  },
   "files": [
     "src",
     "README.md"

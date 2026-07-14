@@ -13,6 +13,14 @@ import { SYSTEM_PROMPT } from "./prompt.ts";
 const args = process.argv.slice(2);
 if (args[0] === "claude") args.shift(); // allow `neversleep claude ...` or `neversleep ...`
 
+if (!Bun.which("claude")) {
+  process.stderr.write(
+    "neversleep: `claude` not found on your PATH.\n" +
+      "install Claude Code first: https://claude.com/claude-code\n",
+  );
+  process.exit(127);
+}
+
 const hookPath = new URL("./hook.ts", import.meta.url).pathname;
 
 const settings = {
