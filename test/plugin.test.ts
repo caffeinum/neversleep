@@ -64,6 +64,20 @@ test("/anxiety OFF (any case) means off, not on", async () => {
   expect((await runHook()).decision).toBeUndefined();
 });
 
+test("plugin hook escalates through the full 10-rung ladder and wraps", async () => {
+  await toggle("on");
+  const stages: string[] = [];
+  for (let i = 0; i < 11; i++) {
+    stages.push((await runHook()).reason.match(/· (\S+) ·/)![1]);
+  }
+  // the plugin's RUNGS is its own copy of the CLI ladder — guard against drift
+  expect(stages.slice(0, 10)).toEqual([
+    "run-it", "user", "edge-cases", "friction", "scope",
+    "correctness", "value-prop", "delight", "moonshot", "senior-eng",
+  ]);
+  expect(stages[10]).toBe("run-it"); // wraps back around
+});
+
 test("a hostile session id can't escape tmpdir and still keys consistently", async () => {
   const hostile = `../../../../tmp/pwned-${process.pid}; \`whoami\``;
   const sanitized = hostile.replace(/[^A-Za-z0-9_-]/g, ""); // node side
