@@ -40,3 +40,11 @@ test("the /anxiety command and its toggle script are present", () => {
   expect(existsSync(join(pluginDir(), "commands", "anxiety.md"))).toBe(true);
   expect(existsSync(join(pluginDir(), "commands", "toggle.sh"))).toBe(true);
 });
+
+test("the command passes $ARGUMENTS to the toggle, not $1", () => {
+  // Claude Code populates $ARGUMENTS for slash commands, NOT $1 — passing $1 made
+  // `/anxiety off` silently default back to on. Guard against reintroducing it.
+  const md = readFileSync(join(pluginDir(), "commands", "anxiety.md"), "utf8");
+  expect(md).toContain('"$ARGUMENTS"');
+  expect(md).not.toMatch(/toggle\.sh"\s+"\$1"/);
+});
