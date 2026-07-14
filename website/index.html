@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>neversleep — give your claude anxiety</title>
+<meta name="description" content="AI is great, but it has no skin in the game. neversleep makes Claude sweat — it works 24/7 and never decides it's done. You do." />
+<meta property="og:title" content="neversleep — give your claude anxiety" />
+<meta property="og:description" content="AI has no skin in the game. neversleep makes Claude sweat and work 24/7, even when it thinks the work is done." />
+<style>
+  :root{
+    --bg:#0a0a0b; --ink:#ededed; --dim:#8a8a8f; --line:#1e1e22;
+    --acc:#ff4d4d; --acc2:#ffd34d;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font:16px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh; display:flex; flex-direction:column;
+    padding:clamp(20px,5vw,64px);
+    overflow-x:hidden;
+  }
+  a{color:inherit}
+  .wrap{max-width:720px;margin:auto;width:100%}
+
+  .tag{color:var(--dim);font-size:13px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:26px}
+  .tag b{color:var(--acc)}
+
+  h1{
+    font-size:clamp(34px,8vw,68px);line-height:1.02;letter-spacing:-.02em;
+    margin:0 0 6px;font-weight:700;
+  }
+  h1 .flick{color:var(--acc);position:relative}
+  h1 .cur{display:inline-block;width:.62ch;height:1em;background:var(--ink);
+    transform:translateY(.12em);margin-left:.06em;animation:blink 1s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+
+  .lede{color:var(--dim);font-size:clamp(15px,2.4vw,19px);margin:22px 0 34px;max-width:52ch}
+  .lede b{color:var(--ink);font-weight:400;border-bottom:1px solid var(--acc)}
+
+  .cmd{
+    display:flex;align-items:center;gap:12px;
+    border:1px solid var(--line);border-radius:10px;
+    padding:16px 18px;background:#101013;
+    font-size:clamp(14px,3vw,18px);cursor:pointer;user-select:all;
+    transition:border-color .2s;
+  }
+  .cmd:hover{border-color:#33333a}
+  .cmd .p{color:var(--acc)}
+  .cmd .c{color:var(--ink)}
+  .cmd .copy{margin-left:auto;color:var(--dim);font-size:12px;user-select:none}
+
+  .loop{margin:38px 0 8px;color:var(--dim);font-size:14px}
+  .loop .now{color:var(--acc2);transition:opacity .25s}
+  .loop .arrow{opacity:.4}
+
+  .note{color:var(--dim);font-size:14px;margin-top:34px;line-height:1.9}
+  .note b{color:var(--ink);font-weight:400}
+  kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;
+    padding:1px 7px;color:var(--ink);font-size:12px;background:#141417}
+
+  footer{margin-top:48px;padding-top:22px;border-top:1px solid var(--line);
+    color:var(--dim);font-size:13px;display:flex;gap:20px;flex-wrap:wrap}
+  footer a{text-decoration:none;border-bottom:1px solid transparent;transition:border-color .2s}
+  footer a:hover{border-color:var(--dim)}
+
+  /* restless: the whole title breathes, never settling */
+  .breathe{animation:sweat 6s ease-in-out infinite}
+  @keyframes sweat{
+    0%,100%{transform:translateY(0)}
+    50%{transform:translateY(-2px)}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .breathe,h1 .cur,.loop .now{animation:none}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="tag">npm i -g <b>neversleep</b> · anxiety.dev</div>
+
+    <h1 class="breathe">give your<br>claude <span class="flick">anxiety</span><span class="cur"></span></h1>
+
+    <p class="lede">AI is great — but it has no ownership, no skin in the game. It calls it done and clocks out. <b>neversleep makes it sweat.</b> It works 24/7 and keeps second-guessing its own work, even when it's sure it's finished.</p>
+
+    <div class="cmd" title="click to copy" onclick="navigator.clipboard&&navigator.clipboard.writeText('bunx neversleep claude')">
+      <span class="p">$</span><span class="c">bunx neversleep claude</span>
+      <span class="copy" id="copy">copy</span>
+    </div>
+
+    <div class="loop">it never stops fretting — <span class="now" id="rung">correctness</span> <span class="arrow">→</span> and around again</div>
+
+    <p class="note">
+      Every time Claude thinks it's done, it doesn't get to stop. It takes another pass — a different worry each lap: <b>does it work, do the tests prove it, what about the weird inputs, can it be simpler, what would a senior eng flag.</b> Then back to the top. Forever.<br>
+      The only off switch is yours: <kbd>ctrl</kbd> <kbd>c</kbd>.
+    </p>
+
+    <footer>
+      <a href="https://github.com/caffeinum/neversleep">github ↗</a>
+      <a href="https://www.npmjs.com/package/neversleep">npm ↗</a>
+      <span>made by an intern who couldn't sleep</span>
+    </footer>
+  </div>
+
+<script>
+  var rungs=["correctness","tests","edge-cases","simplify","senior-eng"];
+  var el=document.getElementById("rung"),i=0;
+  setInterval(function(){
+    i=(i+1)%rungs.length;
+    el.style.opacity=0;
+    setTimeout(function(){el.textContent=rungs[i];el.style.opacity=1;},250);
+  },1600);
+  var cmd=document.querySelector(".cmd"),copy=document.getElementById("copy");
+  cmd&&cmd.addEventListener("click",function(){
+    copy.textContent="copied";setTimeout(function(){copy.textContent="copy";},1400);
+  });
+</script>
+</body>
+</html>
