@@ -71,6 +71,21 @@ test("recovers from a corrupted state file — restarts the ladder, still blocks
   expect(out.reason).toContain("pass 1"); // fell back to 0, never crashed
 });
 
+test("neutralizes a path-traversal session_id — never writes outside tmpdir", async () => {
+  const marker = `pwned-${process.pid}`;
+  const escaped = join(tmpdir(), "..", marker); // where a naive impl would land
+  await unlink(escaped).catch(() => {});
+  sessions.push(`tmp${marker}`); // sanitized form, for cleanup
+
+  const out = await runHook({ session_id: `../../../../tmp/${marker}`, last_assistant_message: "x" });
+  expect(out.decision).toBe("block");
+
+  // the traversal target must NOT have been created
+  expect(await Bun.file(escaped).exists()).toBe(false);
+  // the sanitized state file (dots + slashes stripped) is what actually gets written
+  expect(await Bun.file(join(tmpdir(), `neversleep-tmp${marker}.json`)).exists()).toBe(true);
+});
+
 test("survives an empty / non-JSON stdin", async () => {
   const proc = Bun.spawn(["bun", HOOK], { stdin: "pipe", stdout: "pipe", stderr: "pipe" });
   await proc.stdin.end(); // no input at all
