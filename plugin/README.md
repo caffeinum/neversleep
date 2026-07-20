@@ -35,6 +35,21 @@ Requires [Bun](https://bun.sh) on your PATH (the Stop hook runs `bun`).
 Once on, Claude keeps re-checking and improving its work every time it tries to
 stop. **The off switches:** `/anxiety off`, or ctrl-c (always).
 
+## looping past Claude Code's block cap
+
+Claude Code force-ends a turn after ~9 consecutive Stop-hook blocks that make **no
+tool progress**. While Claude is actively working (a tool call each turn) the
+counter resets and you never hit it — but a truly idle loop will stop there. To
+lift the cap, add this to your `~/.claude/settings.json` (applies to all sessions,
+read at startup):
+
+```json
+{ "env": { "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": "1000000" } }
+```
+
+The `neversleep` CLI sets this automatically when it launches Claude; a plugin
+can't set session env from inside Claude Code, so it's a one-time manual step here.
+
 ## how it works
 
 - `/anxiety` runs a tiny toggle script that touches `$TMPDIR/anxiety-on-<session>`.
